@@ -13,7 +13,7 @@ class YADCDataset(Dataset):
             wav_paths: List[Path],
             max_length: int = 128,
         ):
-        self.max_length = max_langth
+        self.max_length = max_length
         self.wav_paths = wav_paths
 
     def __len__(self) -> int:
@@ -91,6 +91,14 @@ class YADCDataModule:
 
 
 if __name__ == '__main__':
-    datamodule = YADCDataModule(data_path='/Users/sergevkim/git/sergevkim/AudioGenerationEnhancement/data/wavs')
+    datamodule = YADCDataModule(
+        data_path=Path('/Users/sergevkim/git/sergevkim/AudioGenerationEnhancement/data/wavs'),
+    )
+    datamodule.setup(val_ratio=0.1)
+    loader = datamodule.train_dataloader()
+
+    for i in loader:
+        print(i)
+        break
     print(datamodule)
 
