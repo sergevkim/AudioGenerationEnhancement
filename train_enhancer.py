@@ -1,10 +1,10 @@
 from argparse import ArgumentParser
 from pathlib import Path
 
-from protostar.datamodules import ProtostarDataModule
-from protostar.loggers import NeptuneLogger
-from protostar.models import ProtostarModel
-from protostar.trainer import Trainer
+from agneh.datamodules import ProtostarDataModule
+from agenh.loggers import NeptuneLogger
+from agenh.models import ProtostarModel
+from agenh.trainer import Trainer
 
 from config import (
     CommonArguments,

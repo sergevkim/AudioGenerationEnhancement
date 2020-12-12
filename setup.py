@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 
 def main():
-    package_name = 'protostar'
+    package_name = 'agenh'
     packages = find_packages(package_name)
     packages = list(map(lambda x: f'{package_name}/{x}', packages))
 
@@ -10,7 +10,7 @@ def main():
         name=package_name,
         version='0.0.1',
         author='sergevkim',
-        description="Protostar Project",
+        description="Audio Generation and Enhancement",
         package_dir={package_name: package_name},
         packages=packages,
         classifiers=[
