@@ -5,6 +5,9 @@ from agenh.datamodules import YADCDataModule
 # from agenh.loggers import NeptuneLogger
 from agenh.models import AutoEncoder
 from agenh.trainer import Trainer
+import os
+import sys
+import warnings
 
 from config import (
     CommonArguments,
@@ -15,6 +18,7 @@ from config import (
 
 
 def main(args):
+    warnings.filterwarnings("ignore")
     model = AutoEncoder(
         config={'num_features': 128},
     )

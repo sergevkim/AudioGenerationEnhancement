@@ -38,13 +38,13 @@ class AutoEncoder(nn.Module):
     def training_step_end(self):
         pass
 
-    def training_epoch_end(self):
+    def training_epoch_end(self, epoch_idx):
         pass
 
     def validation_step_end(self):
         pass
 
-    def validation_epoch_end(self):
+    def validation_epoch_end(self, epoch_idx):
         pass
 
     def validation_step(self, batch, bathc_idx):

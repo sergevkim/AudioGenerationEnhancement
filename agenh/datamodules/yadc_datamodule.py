@@ -3,6 +3,7 @@ import os
 from agenh.utils import get_wav_from_abc
 
 import torch
+import torchaudio
 from torch import Tensor
 from torch.utils.data import Dataset, DataLoader
 
@@ -12,16 +13,23 @@ class YADCDataset(Dataset):
         data_path = Path(os.environ.get('YADC_DATASET_PATH') + '/abc')
         files = os.listdir(data_path)
         self.files = []
-        bad = ['11797.abc', '160452.abc', '50073.abc']
+        i = 0
         for f in files:
-            if ('.abc' in f) and (f not in bad):
-                self.files.append('{}/{}'.format(data_path, f))
+            if '.abc' in f and not '.wav' in f:
+                wav_file = get_wav_from_abc(data_path, f)
+                self.files.append(wav_file)
+            i += 1
+
+            if (i % 100 == 0):
+                print('\n\n\n progress: {}/{}\n\n\n'.format(i, len(files)))
+                break
 
     def __len__(self) -> int:
         return len(self.files)
 
     def __getitem__(self, idx: int):
-        return get_wav_from_abc(self.files[idx])[:128]
+        w, sr = torchaudio.load(self.files[idx])
+        return w[0][:128]
 
         
 class YADCDataModule:
