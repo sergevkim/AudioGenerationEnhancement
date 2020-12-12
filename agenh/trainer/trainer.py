@@ -68,16 +68,22 @@ class Trainer:
         losses = list()
 
         for batch_idx, batch in enumerate(tqdm.tqdm(train_dataloader)):
-            loss = model.training_step(batch, batch_idx)
+            loss = model.training_step(
+                batch=batch,
+                batch_idx=batch_idx,
+            )
             losses.append(loss.item())
             loss.backward()
-            utils.clip_grad_norm_(parameters=model.parameters(), max_norm=10)
+            utils.clip_grad_norm_(
+                parameters=model.parameters(),
+                max_norm=10,
+            )
 
             for optimizer in optimizers:
                 optimizer.step()
                 optimizer.zero_grad()
 
-            model.training_step_end()
+            model.training_step_end(batch_idx=batch_idx)
 
         average_loss = sum(losses) / len(losses)
 
@@ -98,9 +104,12 @@ class Trainer:
         losses = list()
 
         for batch_idx, batch in enumerate(tqdm.tqdm(val_dataloader)):
-            loss = model.validation_step(batch, batch_idx)
+            loss = model.validation_step(
+                batch=batch,
+                batch_idx=batch_idx,
+            )
             losses.append(loss.item())
-            model.validation_step_end()
+            model.validation_step_end(batch_idx=batch_idx)
 
         average_loss = sum(losses) / len(losses)
 
@@ -159,11 +168,14 @@ class Trainer:
         predicts = list()
 
         for batch_idx, batch in enumerate(test_dataloader):
-            predict = model.test_step(batch, batch_idx)
+            predict = model.test_step(
+                batch=batch,
+                batch_idx=batch_idx,
+            )
             predicts.append(predict)
-            model.test_step_end()
+            model.test_step_end(batch_idx=batch_idx)
 
-        model.test_epoch_end()
+        model.test_epoch_end(epoch_idx=epoch_idx)
 
         return predicts
 

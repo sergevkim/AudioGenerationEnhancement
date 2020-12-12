@@ -9,6 +9,11 @@ from torch.nn import (
 from torch.optim import Adam
 from torch.optim.lr_scheduler import _LRScheduler, LambdaLR
 from torch.optim.optimizer import Optimizer
+from torchaudio.transforms import (
+    MelSpectrogram,
+    MuLawDecoding,
+    MuLawEncoding,
+)
 
 from agenh.models.hifi_gan_components import (
     HiFiDiscriminator,
@@ -27,6 +32,19 @@ class HiFiGANEnhancer(Module):
         ):
         super().__init__()
         self.learning_rate = learning_rate
+
+        self.mel_spectrogramer = MelSpectrogram(
+            sample_rate=22050,
+            win_length=1024,
+            hop_length=256,
+            n_fft=1024,
+            f_min=0,
+            f_max=8000,
+            n_mels=80,
+            power=1.0,
+        )
+        self.mu_law_encoder = MuLawEncoding(quantization_channels=256)
+        self.mu_law_decoder = MuLawEncoding(quantization_channels=256)
         self.criterion = MSELoss()
 
         self.discriminator = HiFiDiscriminator()
@@ -45,11 +63,13 @@ class HiFiGANEnhancer(Module):
         ) -> Tensor:
         original, corrupted = batch
         original = original.to(self.device)
-        corrupted = corripted.to(self.device)
+        corrupted = corrupted.to(self.device)
 
-        generated = self.generator(corrupted)
+        generated_w, generated_p = self.generator(corrupted)
 
-        loss = self.criterion(generated, original)
+        loss_w = self.criterion_w(generated_w, original)
+        loss_p = self.criterion_p(generated_p, original)
+        loss = loss_w + loss_p
 
         return loss
 
@@ -69,7 +89,10 @@ class HiFiGANEnhancer(Module):
     def validation_step_end(self):
         pass
 
-    def validation_epoch_end(self):
+    def validation_epoch_end(
+            self,
+            epoch_idx,
+        ):
         pass
 
     def configure_optimizers(
