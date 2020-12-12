@@ -2,6 +2,7 @@ from collections import OrderedDict
 from typing import Tuple
 
 import torch
+from torch import Tensor
 from torch.nn import (
     Conv1d,
     Module,
@@ -51,8 +52,8 @@ class PostNet(Module):
         ):
         super().__init__()
 
-        block_ordered_dict = OrderedDict()
-        block_ordered_dict['block_0'] = Sequential(
+        blocks_ordered_dict = OrderedDict()
+        blocks_ordered_dict['block_0'] = Sequential(
             Conv1d(
                 in_channels=in_channels,
                 out_channels=hidden_dim,
@@ -63,7 +64,7 @@ class PostNet(Module):
         )
 
         for i in range(1, blocks_num - 1):
-            block_ordered_dict[f'block_{i}'] = Sequential(
+            blocks_ordered_dict[f'block_{i}'] = Sequential(
                 Conv1d(
                     in_channels=hidden_dim,
                     out_channels=hidden_dim,
@@ -73,7 +74,7 @@ class PostNet(Module):
                 Tanh(),
             )
 
-        block_ordered_dict[f'block_{n - 1}'] = Sequential(
+        blocks_ordered_dict[f'block_{blocks_num - 1}'] = Sequential(
             Conv1d(
                 in_channels=hidden_dim,
                 out_channels=out_channels,
