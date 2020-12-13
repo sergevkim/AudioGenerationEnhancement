@@ -1,4 +1,12 @@
-# Project Title
+# Audio Generation and Enhancement
+
+## Enhancement Part
+
+HiFi-GAN: High-Fidelity Denoising and Dereverberation Based on Speech Deep Features in Adversarial Networks - https://arxiv.org/pdf/2006.05694.pdf
+
+A Wavenet for Speech Denoising - https://arxiv.org/pdf/1706.07162.pdf
+
+
 
 One Paragraph of project description goes here
 
