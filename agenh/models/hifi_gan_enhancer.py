@@ -17,8 +17,9 @@ from torchaudio.transforms import (
 )
 
 from agenh.models.hifi_gan_components import (
-    HiFiDiscriminator,
     HiFiGenerator,
+    HiFiSpectrogramDiscriminator,
+    HiFiWaveformDiscriminator,
 )
 
 
@@ -55,8 +56,9 @@ class HiFiGANEnhancer(Module):
         self.spectrogram_criterion_w = MSELoss()
         self.spectrogram_criterion_p = MSELoss()
 
-        self.discriminator = HiFiDiscriminator()
         self.generator = HiFiGenerator()
+        self.waveform_discriminator = HiFiWaveformDiscriminator()
+        self.spectrogram_discriminator = HiFiSpectrogramDiscriminator()
 
     def forward(
             self,
