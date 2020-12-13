@@ -22,7 +22,7 @@ class YADCDataset(Dataset):
 
     def __getitem__(self, idx: int) -> Tensor:
         waveform, _ = torchaudio.load(self.wav_paths[idx])
-        waveform = waveform[0][:self.max_length]
+        waveform = waveform[0][:self.max_length] #TODO [0] or .squeeze or nothing?
         waveform = einops.rearrange(
             tensor=waveform,
             pattern='length -> 1 length',

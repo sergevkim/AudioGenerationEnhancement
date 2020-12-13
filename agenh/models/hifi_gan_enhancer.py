@@ -21,6 +21,7 @@ from agenh.models.hifi_gan_components import (
     HiFiSpectrogramDiscriminator,
     HiFiWaveformDiscriminator,
 )
+from agenh.utils.waveform_processor import WaveformProcessor
 
 
 class HiFiGANEnhancer(Module):
@@ -42,6 +43,7 @@ class HiFiGANEnhancer(Module):
         self.mel_spectrogramer = MelSpectrogram(
             n_mels=80,
         ).to(device)
+        self.waveform_processor = WaveformProcessor()
         self.mu_law_encoder = MuLawEncoding(quantization_channels=256)
         self.mu_law_decoder = MuLawEncoding(quantization_channels=256)
         self.l1_criterion_w = L1Loss()
@@ -66,7 +68,7 @@ class HiFiGANEnhancer(Module):
         ) -> Tensor:
         original_waveforms = batch
         original_waveforms = original_waveforms.to(self.device)
-        corrupted_waveforms = original_waveforms #TODO add synthetic corruption
+        corrupted_waveforms = self.waveform_processor(original_waveforms)
         corrupted_waveforms = corrupted_waveforms.to(self.device)
         original_mel_specs = self.mel_spectrogramer(original_waveforms)
 
