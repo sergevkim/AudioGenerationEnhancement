@@ -51,8 +51,8 @@ class HiFiGANEnhancer(Module):
         self.l1_criterion_p = L1Loss()
         self.spectrogram_criterion_w = MSELoss()
         self.spectrogram_criterion_p = MSELoss()
-        self.waveform_adv_criterion = BCELoss()
-        self.spectrogram_adv_criterion = BCELoss()
+        self.adv_waveform_criterion = BCELoss()
+        self.adv_spectrogram_criterion = BCELoss()
 
         self.generator = HiFiGenerator()
         self.waveform_discriminator = HiFiWaveformDiscriminator()
@@ -95,13 +95,13 @@ class HiFiGANEnhancer(Module):
 
         loss_w = l1_loss_w + spectrogram_loss_w
         loss_p = l1_loss_p + spectrogram_loss_p
-        g_fake_waveform_loss = self.waveform_adv_criterion(
+        g_fake_waveform_loss = self.adv_waveform_criterion(
             input=fake_waveform_predicts,
-            target=torch.ones_like(fake_predicts),
+            target=torch.ones_like(fake_waveform_predicts),
         )
-        g_fake_mel_spec_loss = self.spectrogram_adv_criterion(
+        g_fake_mel_spec_loss = self.adv_spectrogram_criterion(
             input=fake_mel_spec_predicts,
-            target=torch.ones_like(fake_predicts),
+            target=torch.ones_like(fake_mel_spec_predicts),
         )
         loss = loss_w + loss_p + g_fake_waveform_loss + g_fake_mel_spec_loss
 
@@ -118,7 +118,7 @@ class HiFiGANEnhancer(Module):
             input=fake_waveform_predicts,
             target=torch.zeros_like(fake_waveform_predicts),
         )
-        d_fake_mel_spec_loss = self.adv_mel_spec_criterion(
+        d_fake_mel_spec_loss = self.adv_spectrogram_criterion(
             input=fake_mel_spec_predicts,
             target=torch.zeros_like(fake_mel_spec_predicts),
         )
@@ -126,7 +126,7 @@ class HiFiGANEnhancer(Module):
             input=real_waveform_predicts,
             target=torch.ones_like(real_waveform_predicts),
         )
-        d_real_mel_spec_loss = self.adv_mel_spec_criterion(
+        d_real_mel_spec_loss = self.adv_spectrogram_criterion(
             input=real_mel_spec_predicts,
             target=torch.ones_like(real_mel_spec_predicts),
         )
@@ -156,18 +156,18 @@ class HiFiGANEnhancer(Module):
         generated_mel_specs_w = self.mel_spectrogramer(generated_waveforms_w)
         generated_mel_specs_p = self.mel_spectrogramer(generated_waveforms_p)
 
-        fake_waveform_predicts = self.waveform_discriminator(
+        fake_waveform_predicts = torch.sigmoid(self.waveform_discriminator(
             x=generated_waveforms_p,
-        )
-        real_waveform_predicts = self.waveform_discriminator(
+        ))
+        real_waveform_predicts = torch.sigmoid(self.waveform_discriminator(
             x=original_waveforms,
-        )
-        fake_mel_spec_predicts = self.spectrogram_discriminator(
+        ))
+        fake_mel_spec_predicts = torch.sigmoid(self.spectrogram_discriminator(
             x=generated_waveforms_p,
-        )
-        real_mel_spec_predicts = self.spectrogram_discriminator(
+        ))
+        real_mel_spec_predicts = torch.sigmoid(self.spectrogram_discriminator(
             x=original_waveforms,
-        )
+        ))
 
         generator_loss = self.generator_training_step(
             generated_waveforms_w=generated_waveforms_w,
