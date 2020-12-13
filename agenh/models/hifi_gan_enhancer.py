@@ -3,6 +3,7 @@ from typing import List, Tuple
 import torch
 from torch import Tensor
 from torch.nn import (
+    BCELoss,
     L1Loss,
     Module,
     MSELoss,
@@ -50,6 +51,8 @@ class HiFiGANEnhancer(Module):
         self.l1_criterion_p = L1Loss()
         self.spectrogram_criterion_w = MSELoss()
         self.spectrogram_criterion_p = MSELoss()
+        self.waveform_adv_criterion = BCELoss()
+        self.spectrogram_adv_criterion = BCELoss()
 
         self.generator = HiFiGenerator()
         self.waveform_discriminator = HiFiWaveformDiscriminator()
@@ -61,23 +64,17 @@ class HiFiGANEnhancer(Module):
         ) -> Tensor:
         return self.generator(x)
 
-    def training_step(
+    def generator_training_step(
             self,
-            batch: Tensor,
-            batch_idx: int,
+            generated_waveforms_w: Tensor,
+            generated_mel_specs_w: Tensor,
+            generated_waveforms_p: Tensor,
+            generated_mel_specs_p: Tensor,
+            original_waveforms: Tensor,
+            original_mel_specs: Tensor,
+            fake_waveform_predicts: Tensor,
+            fake_mel_spec_predicts: Tensor,
         ) -> Tensor:
-        original_waveforms = batch
-        original_waveforms = original_waveforms.to(self.device)
-        corrupted_waveforms = self.waveform_processor(original_waveforms)
-        corrupted_waveforms = corrupted_waveforms.to(self.device)
-        original_mel_specs = self.mel_spectrogramer(original_waveforms)
-
-        generated_waveforms_w, generated_waveforms_p = self.generator(
-            x=corrupted_waveforms,
-        )
-        generated_mel_specs_w = self.mel_spectrogramer(generated_waveforms_w)
-        generated_mel_specs_p = self.mel_spectrogramer(generated_waveforms_p)
-
         l1_loss_w = self.l1_criterion_w(
             input=generated_waveforms_w,
             target=original_waveforms,
@@ -98,7 +95,97 @@ class HiFiGANEnhancer(Module):
 
         loss_w = l1_loss_w + spectrogram_loss_w
         loss_p = l1_loss_p + spectrogram_loss_p
-        loss = loss_w + loss_p
+        g_fake_waveform_loss = self.waveform_adv_criterion(
+            input=fake_waveform_predicts,
+            target=torch.ones_like(fake_predicts),
+        )
+        g_fake_mel_spec_loss = self.spectrogram_adv_criterion(
+            input=fake_mel_spec_predicts,
+            target=torch.ones_like(fake_predicts),
+        )
+        loss = loss_w + loss_p + g_fake_waveform_loss + g_fake_mel_spec_loss
+
+        return loss
+
+    def discriminator_training_step(
+            self,
+            fake_waveform_predicts: Tensor,
+            fake_mel_spec_predicts: Tensor,
+            real_waveform_predicts: Tensor,
+            real_mel_spec_predicts: Tensor,
+        ) -> Tensor:
+        d_fake_waveform_loss = self.adv_waveform_criterion(
+            input=fake_waveform_predicts,
+            target=torch.zeros_like(fake_waveform_predicts),
+        )
+        d_fake_mel_spec_loss = self.adv_mel_spec_criterion(
+            input=fake_mel_spec_predicts,
+            target=torch.zeros_like(fake_mel_spec_predicts),
+        )
+        d_real_waveform_loss = self.adv_waveform_criterion(
+            input=real_waveform_predicts,
+            target=torch.ones_like(real_waveform_predicts),
+        )
+        d_real_mel_spec_loss = self.adv_mel_spec_criterion(
+            input=real_mel_spec_predicts,
+            target=torch.ones_like(real_mel_spec_predicts),
+        )
+        loss = (
+            d_fake_waveform_loss
+            + d_fake_mel_spec_loss
+            + d_real_waveform_loss
+            + d_real_mel_spec_loss
+        )
+
+        return loss
+
+    def training_step(
+            self,
+            batch: Tensor,
+            batch_idx: int,
+        ) -> Tensor:
+        original_waveforms = batch
+        original_waveforms = original_waveforms.to(self.device)
+        corrupted_waveforms = self.waveform_processor(original_waveforms)
+        corrupted_waveforms = corrupted_waveforms.to(self.device)
+        original_mel_specs = self.mel_spectrogramer(original_waveforms)
+
+        generated_waveforms_w, generated_waveforms_p = self.generator(
+            x=corrupted_waveforms,
+        )
+        generated_mel_specs_w = self.mel_spectrogramer(generated_waveforms_w)
+        generated_mel_specs_p = self.mel_spectrogramer(generated_waveforms_p)
+
+        fake_waveform_predicts = self.waveform_discriminator(
+            x=generated_waveforms_p,
+        )
+        real_waveform_predicts = self.waveform_discriminator(
+            x=original_waveforms,
+        )
+        fake_mel_spec_predicts = self.spectrogram_discriminator(
+            x=generated_waveforms_p,
+        )
+        real_mel_spec_predicts = self.spectrogram_discriminator(
+            x=original_waveforms,
+        )
+
+        generator_loss = self.generator_training_step(
+            generated_waveforms_w=generated_waveforms_w,
+            generated_mel_specs_w=generated_mel_specs_w,
+            generated_waveforms_p=generated_waveforms_p,
+            generated_mel_specs_p=generated_mel_specs_p,
+            original_waveforms=original_waveforms,
+            original_mel_specs=original_mel_specs,
+            fake_waveform_predicts=fake_waveform_predicts,
+            fake_mel_spec_predicts=fake_mel_spec_predicts,
+        )
+        discriminator_loss = self.discriminator_training_step(
+            fake_waveform_predicts=fake_waveform_predicts,
+            fake_mel_spec_predicts=fake_mel_spec_predicts,
+            real_waveform_predicts=real_waveform_predicts,
+            real_mel_spec_predicts=real_mel_spec_predicts,
+        )
+        loss = generator_loss + discriminator_loss
 
         return loss
 
