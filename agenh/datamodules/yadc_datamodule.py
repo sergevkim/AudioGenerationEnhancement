@@ -1,32 +1,41 @@
 from pathlib import Path
+from typing import Dict, List
 
+import einops
 import torch
+import torchaudio
 from torch import Tensor
 from torch.utils.data import Dataset, DataLoader
 
 
-class ProtostarDataset(Dataset):
+class YADCDataset(Dataset):
     def __init__(
             self,
+            wav_paths: List[Path],
+            max_length: int = 256,
         ):
-        pass
+        self.max_length = max_length
+        self.wav_paths = wav_paths
 
     def __len__(self) -> int:
-        pass
+        return len(self.wav_paths)
 
-    def __getitem__(
-            self,
-            idx: int,
-        ):
-        pass
+    def __getitem__(self, idx: int) -> Tensor:
+        waveform, _ = torchaudio.load(self.wav_paths[idx])
+        waveform = waveform[0][:self.max_length] #TODO [0] or .squeeze or nothing?
+        waveform = einops.rearrange(
+            tensor=waveform,
+            pattern='length -> 1 length',
+        )
 
+        return waveform
 
-class ProtostarDataModule:
+class YADCDataModule:
     def __init__(
             self,
             data_path: Path,
-            batch_size: int,
-            num_workers: int,
+            batch_size: int = 1,
+            num_workers: int = 1,
         ):
         self.data_path = data_path
         self.batch_size = batch_size
@@ -35,8 +44,14 @@ class ProtostarDataModule:
     @staticmethod
     def prepare_data(
             data_path: Path,
-        ):
-        pass
+        ) -> Dict[str, Path]:
+        wav_paths = list(str(p) for p in data_path.glob('*.wav'))
+
+        data = dict(
+            wav_paths=wav_paths
+        )
+
+        return data
 
     def setup(
             self,
@@ -45,7 +60,8 @@ class ProtostarDataModule:
         data = self.prepare_data(
             data_path=self.data_path,
         )
-        full_dataset = ProtostarDataset(
+        full_dataset = YADCDataset(
+            wav_paths=data['wav_paths'],
         )
 
         full_size = len(full_dataset)
@@ -77,4 +93,17 @@ class ProtostarDataModule:
 
     def test_dataloader(self):
         pass
+
+
+if __name__ == '__main__':
+    datamodule = YADCDataModule(
+        data_path=Path('/Users/sergevkim/git/sergevkim/AudioGenerationEnhancement/data/wavs'),
+    )
+    datamodule.setup(val_ratio=0.1)
+    loader = datamodule.train_dataloader()
+
+    for i in loader:
+        print(i)
+        break
+    print(datamodule)
 
