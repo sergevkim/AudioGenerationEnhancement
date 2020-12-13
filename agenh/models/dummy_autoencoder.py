@@ -22,6 +22,7 @@ class AutoEncoder(nn.Module):
         self.decoder.append(nn.Linear(in_features=128, out_features=self.num_features))
         self.decoder.append(nn.ReLU())
 
+        self.device = config['device']
         self.train_loss = nn.MSELoss()
 
     def forward(self, x):
@@ -32,6 +33,7 @@ class AutoEncoder(nn.Module):
         return x
 
     def training_step(self, batch, bacth_idx):
+        batch = batch.to(self.device)
         res = self.forward(batch)
         return self.train_loss(res, batch)
 

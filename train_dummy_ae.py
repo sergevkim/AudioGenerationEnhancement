@@ -19,15 +19,19 @@ from config import (
 
 def main(args):
     warnings.filterwarnings("ignore")
+
+    print('\n\nDEVICE: {}\n\n'.format(args.device))
+
     model = AutoEncoder(
-        config={'num_features': 65536},
-    )
+        config={'num_features': 65536, 'device': args.device},
+    ).to(args.device)
+
     datamodule = YADCDataModule(
         data_path=None,
-        batch_size=1,
+        batch_size=64,
         num_workers=args.num_workers,
     )
-    datamodule.setup(val_ratio=0.5)
+    datamodule.setup(val_ratio=0.05)
     
     trainer = Trainer(
         logger=None,

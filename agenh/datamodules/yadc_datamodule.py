@@ -10,13 +10,18 @@ from torch.utils.data import Dataset, DataLoader
 
 class YADCDataset(Dataset):
     def __init__(self):
-        data_path = Path(os.environ.get('YADC_DATASET_PATH') + '/abc')
+        data_path = Path(os.environ.get('YADC_DATASET_PATH'))
         files = os.listdir(data_path)
         self.files = []
         i = 0
         for f in files:
-            if '.abc' in f and not '.wav' in f:
-                wav_file = get_wav_from_abc(data_path, f)
+            if '.wav' in f:
+                # wav_file = get_wav_from_abc(data_path, f)
+                
+                wav_file = '{}/{}'.format(data_path, f)
+                w, sr = torchaudio.load(wav_file)
+                if w.shape[1] < 2 ** 16:
+                    continue
                 self.files.append(wav_file)
             i += 1
 
@@ -29,8 +34,8 @@ class YADCDataset(Dataset):
         return len(self.files)
 
     def __getitem__(self, idx: int):
-        #w, sr = torchaudio.load(self.files[idx])
-        return torch.load(self.files[idx])
+        w, sr = torchaudio.load(self.files[idx])
+        return w.squeeze()
 
         
 class YADCDataModule:

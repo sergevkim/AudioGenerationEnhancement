@@ -21,7 +21,7 @@ def get_wav_from_abc(path, filename):
     filen = '{}/{}'.format(path, filename)
     midi_f = '{}.midi'.format(filen)
     wav_f = '{}.wav'.format(filename)
-    final_name = '/content/wavs/{}.wav'.format(filename)
+    final_name = '/content/wavs/{}.wav'.format(filename[:-4])
     abc2midi(filen, midi_f)
     midi2wav(midi_f, wav_f)
 
@@ -29,7 +29,11 @@ def get_wav_from_abc(path, filename):
     l = w.shape[1] // 2
     from_ = l - 1024 * 32
     to_ = l + 1024 * 32
-    torch.save(w[0][from_:to_], final_name)
+    wav = w[0][from_:to_]
+    print('WAV SHAPE:', wav.shape)
+    print('F NAME:', final_name)
+    torchaudio.save(final_name, src=wav, sample_rate=8000)
+    #torch.save(w[0][from_:to_], final_name)
     os.remove(midi_f)
     os.remove(wav_f)
     return final_name
