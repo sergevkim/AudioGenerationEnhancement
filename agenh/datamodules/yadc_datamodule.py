@@ -20,7 +20,7 @@ class YADCDataset(Dataset):
                 
                 wav_file = '{}/{}'.format(data_path, f)
                 w, sr = torchaudio.load(wav_file)
-                if w.shape[1] < 2 ** 16:
+                if w.shape[1] < 16000:
                     continue
                 self.files.append(wav_file)
             i += 1

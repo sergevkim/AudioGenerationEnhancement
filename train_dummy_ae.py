@@ -23,7 +23,7 @@ def main(args):
     print('\n\nDEVICE: {}\n\n'.format(args.device))
 
     model = AutoEncoder(
-        config={'num_features': 65536, 'device': args.device},
+        config={'num_features': 16000, 'device': args.device},
     ).to(args.device)
 
     datamodule = YADCDataModule(
@@ -31,7 +31,7 @@ def main(args):
         batch_size=64,
         num_workers=args.num_workers,
     )
-    datamodule.setup(val_ratio=0.05)
+    datamodule.setup(val_ratio=0.1)
     
     trainer = Trainer(
         logger=None,
