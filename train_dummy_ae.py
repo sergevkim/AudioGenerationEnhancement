@@ -20,20 +20,20 @@ from config import (
 def main(args):
     warnings.filterwarnings("ignore")
     model = AutoEncoder(
-        config={'num_features': 128},
+        config={'num_features': 65536},
     )
     datamodule = YADCDataModule(
         data_path=None,
-        batch_size=args.batch_size,
+        batch_size=1,
         num_workers=args.num_workers,
     )
-    datamodule.setup(val_ratio=args.val_ratio)
+    datamodule.setup(val_ratio=0.5)
     
     trainer = Trainer(
         logger=None,
         verbose=args.verbose,
         version=args.version,
-        max_epoch=1000000000
+        max_epoch=1000
     )
 
     trainer.fit(

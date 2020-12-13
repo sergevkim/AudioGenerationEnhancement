@@ -22,14 +22,15 @@ class YADCDataset(Dataset):
 
             if (i % 100 == 0):
                 print('\n\n\n progress: {}/{}\n\n\n'.format(i, len(files)))
-                break
+                #print('FILE:', self.files[0])
+                #break
 
     def __len__(self) -> int:
         return len(self.files)
 
     def __getitem__(self, idx: int):
-        w, sr = torchaudio.load(self.files[idx])
-        return w[0][:128]
+        #w, sr = torchaudio.load(self.files[idx])
+        return torch.load(self.files[idx])
 
         
 class YADCDataModule:
