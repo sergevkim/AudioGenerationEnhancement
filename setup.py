@@ -1,6 +1,5 @@
 from setuptools import find_packages, setup
 
-
 def main():
     package_name = 'agenh'
     packages = find_packages(package_name)
@@ -28,4 +27,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
