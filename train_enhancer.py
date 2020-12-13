@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from pathlib import Path
 
-from agenh.datamodules import ProtostarDataModule
+from agenh.datamodules import YADCDataModule
 from agenh.loggers import NeptuneLogger
 from agenh.models import HiFiGANEnhancer
 from agenh.trainer import Trainer
@@ -15,14 +15,14 @@ from config import (
 
 
 def main(args):
-    enhancer = HiFiGANEhnancer(
-        learning_rate=args.learning_rate
+    enhancer = HiFiGANEnhancer(
+        learning_rate=args.learning_rate,
         scheduler_gamma=args.scheduler_gamma,
         scheduler_step_size=args.scheduler_step_size,
         verbose=args.verbose,
-        devise=args.device,
+        device=args.device,
     ).to(args.device)
-    datamodule = ProtostarDataModule(
+    datamodule = YADCDataModule(
         data_path=args.data_path,
         batch_size=args.batch_size,
         num_workers=args.num_workers,
@@ -36,12 +36,13 @@ def main(args):
     logger = None
     trainer = Trainer(
         logger=logger,
+        max_epoch=args.max_epoch,
         verbose=args.verbose,
         version=args.version,
     )
 
     trainer.fit(
-        model=model,
+        model=enhancer,
         datamodule=datamodule,
     )
 

@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Dict, List
 
+import einops
 import torch
 import torchaudio
 from torch import Tensor
@@ -11,7 +12,7 @@ class YADCDataset(Dataset):
     def __init__(
             self,
             wav_paths: List[Path],
-            max_length: int = 128,
+            max_length: int = 256,
         ):
         self.max_length = max_length
         self.wav_paths = wav_paths
@@ -21,9 +22,13 @@ class YADCDataset(Dataset):
 
     def __getitem__(self, idx: int) -> Tensor:
         waveform, _ = torchaudio.load(self.wav_paths[idx])
+        waveform = waveform[0][:self.max_length]
+        waveform = einops.rearrange(
+            tensor=waveform,
+            pattern='length -> 1 length',
+        )
 
-        return waveform[0][:self.max_length]
-
+        return waveform
 
 class YADCDataModule:
     def __init__(

@@ -19,7 +19,7 @@ class WaveNet(Module):
     def __init__(
             self,
             in_channels: int = 1,
-            out_channels: int = 5,
+            out_channels: int = 1,
             hidden_dim: int = 10,
         ):
         super().__init__()
@@ -38,10 +38,10 @@ class WaveNet(Module):
 
     def forward(
             self,
-            x: Tensor, #shape: (batch_size, wav_langth)
+            x: Tensor, #shape: (batch_size, wav_length)
         ) -> Tensor:
-        x = self.conv_1(x)
-        x = self.conv_2(x)
+        x = self.conv_first(x)
+        x = self.conv_last(x)
 
         return x
 
@@ -50,9 +50,9 @@ class PostNet(Module):
     def __init__(
             self,
             blocks_num: int = 4,
-            in_channels: int = 5,
+            in_channels: int = 1,
             out_channels: int = 1,
-            hidden_dim: int = 6,
+            hidden_dim: int = 10,
         ):
         super().__init__()
 

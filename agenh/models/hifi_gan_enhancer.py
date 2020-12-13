@@ -40,14 +40,7 @@ class HiFiGANEnhancer(Module):
         self.verbose = verbose
 
         self.mel_spectrogramer = MelSpectrogram(
-            sample_rate=22050,
-            win_length=1024,
-            hop_length=256,
-            n_fft=1024,
-            f_min=0,
-            f_max=8000,
             n_mels=80,
-            power=1.0,
         ).to(device)
         self.mu_law_encoder = MuLawEncoding(quantization_channels=256)
         self.mu_law_decoder = MuLawEncoding(quantization_channels=256)
@@ -71,8 +64,9 @@ class HiFiGANEnhancer(Module):
             batch: Tensor,
             batch_idx: int,
         ) -> Tensor:
-        original_waveforms, corrupted_waveforms = batch
+        original_waveforms = batch
         original_waveforms = original_waveforms.to(self.device)
+        corrupted_waveforms = original_waveforms #TODO add synthetic corruption
         corrupted_waveforms = corrupted_waveforms.to(self.device)
         original_mel_specs = self.mel_spectrogramer(original_waveforms)
 
@@ -123,7 +117,12 @@ class HiFiGANEnhancer(Module):
             batch: Tensor,
             batch_idx: int,
         ) -> Tensor:
-        pass
+        loss = self.training_step(
+            batch=batch,
+            batch_idx=batch_idx,
+        )
+
+        return loss
 
     def validation_step_end(
             self,
@@ -146,9 +145,8 @@ class HiFiGANEnhancer(Module):
         )
         scheduler = StepLR(
             optimizer=optimizer,
-            step_size=self.step_size,
-            gamma=self.gamma,
-            verbose=self.verbose,
+            step_size=self.scheduler_step_size,
+            gamma=self.scheduler_gamma,
         )
 
         return [optimizer], []
