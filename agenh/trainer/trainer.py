@@ -83,6 +83,7 @@ class Trainer:
 
         if self.verbose:
             print(epoch_idx, average_loss)
+            self.logger.log_metric('train_loss', average_loss)
 
         model.training_epoch_end(epoch_idx=epoch_idx)
 
@@ -106,6 +107,7 @@ class Trainer:
 
         if self.verbose:
             print(epoch_idx, average_loss)
+            self.logger.log_metric('val_loss', average_loss)
 
         for scheduler in schedulers:
             scheduler.step()

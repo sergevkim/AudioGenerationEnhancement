@@ -7,3 +7,5 @@ apt-get install abcmidi
 apt-get install fluidsynth
 pip install torchaudio
 pip install midi2audio
+pip install wandb
+wandb login

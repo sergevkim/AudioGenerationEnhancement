@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 from agenh.datamodules import YADCDataModule
-# from agenh.loggers import NeptuneLogger
+from agenh.loggers import WandbLogger
 from agenh.models import AutoEncoder
 from agenh.trainer import Trainer
 import os
@@ -31,12 +31,12 @@ def main(args):
         batch_size=64,
         num_workers=args.num_workers,
     )
-    datamodule.setup(val_ratio=0.1)
+    datamodule.setup(val_ratio=0.07)
     
     trainer = Trainer(
-        logger=None,
+        logger=WandbLogger('MusicGenerator', 'AutoEncoder_512-256-128-MSE'),
         verbose=args.verbose,
-        version=args.version,
+        version='1.0.2',
         max_epoch=1000
     )
 

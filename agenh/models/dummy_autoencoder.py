@@ -11,7 +11,11 @@ class AutoEncoder(nn.Module):
         self.learning_rate = 3e-4
         self.num_features = config['num_features']
         self.encoder = nn.ModuleList()
-        self.encoder.append(nn.Linear(in_features=self.num_features, out_features=128))
+        self.encoder.append(nn.Linear(in_features=self.num_features, out_features=512))
+        self.encoder.append(nn.ReLU())
+        self.encoder.append(nn.Linear(in_features=512, out_features=256))
+        self.encoder.append(nn.ReLU())
+        self.encoder.append(nn.Linear(in_features=256, out_features=128))
         self.encoder.append(nn.ReLU())
         self.encoder.append(nn.Linear(in_features=128, out_features=128))
         self.encoder.append(nn.ReLU())
@@ -19,11 +23,15 @@ class AutoEncoder(nn.Module):
         self.decoder = nn.ModuleList()
         self.decoder.append(nn.Linear(in_features=128, out_features=128))
         self.decoder.append(nn.ReLU())
-        self.decoder.append(nn.Linear(in_features=128, out_features=self.num_features))
+        self.decoder.append(nn.Linear(in_features=128, out_features=256))
+        self.decoder.append(nn.ReLU())
+        self.decoder.append(nn.Linear(in_features=256, out_features=512))
+        self.decoder.append(nn.ReLU())
+        self.decoder.append(nn.Linear(in_features=512, out_features=self.num_features))
         self.decoder.append(nn.ReLU())
 
         self.device = config['device']
-        self.train_loss = nn.MSELoss()
+        self.train_loss = nn.L1Loss()
 
     def forward(self, x):
         for l in self.encoder:
