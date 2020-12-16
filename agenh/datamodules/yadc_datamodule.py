@@ -12,7 +12,7 @@ class YADCDataset(Dataset):
     def __init__(
             self,
             wav_paths: List[Path],
-            max_length: int = 256,
+            max_length: int = 16000,
         ):
         self.max_length = max_length
         self.wav_paths = wav_paths

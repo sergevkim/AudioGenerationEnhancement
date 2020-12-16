@@ -143,6 +143,7 @@ class HiFiGANEnhancer(Module):
             self,
             batch: Tensor,
             batch_idx: int,
+            optimizer_idx: int,
         ) -> Tensor:
         original_waveforms = batch
         original_waveforms = original_waveforms.to(self.device)
@@ -169,25 +170,26 @@ class HiFiGANEnhancer(Module):
             x=original_waveforms,
         ))
 
-        generator_loss = self.generator_training_step(
-            generated_waveforms_w=generated_waveforms_w,
-            generated_mel_specs_w=generated_mel_specs_w,
-            generated_waveforms_p=generated_waveforms_p,
-            generated_mel_specs_p=generated_mel_specs_p,
-            original_waveforms=original_waveforms,
-            original_mel_specs=original_mel_specs,
-            fake_waveform_predicts=fake_waveform_predicts,
-            fake_mel_spec_predicts=fake_mel_spec_predicts,
-        )
-        discriminator_loss = self.discriminator_training_step(
-            fake_waveform_predicts=fake_waveform_predicts,
-            fake_mel_spec_predicts=fake_mel_spec_predicts,
-            real_waveform_predicts=real_waveform_predicts,
-            real_mel_spec_predicts=real_mel_spec_predicts,
-        )
-        loss = generator_loss + discriminator_loss
-
-        return loss
+        if optimizer_idx % 2 == 0:
+            generator_loss = self.generator_training_step(
+                generated_waveforms_w=generated_waveforms_w,
+                generated_mel_specs_w=generated_mel_specs_w,
+                generated_waveforms_p=generated_waveforms_p,
+                generated_mel_specs_p=generated_mel_specs_p,
+                original_waveforms=original_waveforms,
+                original_mel_specs=original_mel_specs,
+                fake_waveform_predicts=fake_waveform_predicts,
+                fake_mel_spec_predicts=fake_mel_spec_predicts,
+            )
+            return generator_loss
+        else:
+            discriminator_loss = self.discriminator_training_step(
+                fake_waveform_predicts=fake_waveform_predicts,
+                fake_mel_spec_predicts=fake_mel_spec_predicts,
+                real_waveform_predicts=real_waveform_predicts,
+                real_mel_spec_predicts=real_mel_spec_predicts,
+            )
+            return discriminator_loss
 
     def training_step_end(
             self,
@@ -209,6 +211,7 @@ class HiFiGANEnhancer(Module):
         loss = self.training_step(
             batch=batch,
             batch_idx=batch_idx,
+            optimizer_idx=0,
         )
 
         return loss
