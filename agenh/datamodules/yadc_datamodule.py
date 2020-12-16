@@ -1,7 +1,13 @@
 from pathlib import Path
+<<<<<<< HEAD
 from typing import Dict, List
 
 import einops
+=======
+import os 
+from agenh.utils import get_wav_from_abc
+
+>>>>>>> 02-generator
 import torch
 import torchaudio
 from torch import Tensor
@@ -9,6 +15,7 @@ from torch.utils.data import Dataset, DataLoader
 
 
 class YADCDataset(Dataset):
+<<<<<<< HEAD
     def __init__(
             self,
             wav_paths: List[Path],
@@ -30,13 +37,46 @@ class YADCDataset(Dataset):
 
         return waveform
 
+=======
+    def __init__(self):
+        data_path = Path(os.environ.get('YADC_DATASET_PATH') + '/abc')
+        files = os.listdir(data_path)
+        self.files = []
+        i = 0
+        for f in files:
+            if '.abc' in f and not '.wav' in f:
+                wav_file = get_wav_from_abc(data_path, f)
+                self.files.append(wav_file)
+            i += 1
+
+            if (i % 100 == 0):
+                print('\n\n\n progress: {}/{}\n\n\n'.format(i, len(files)))
+                break
+
+    def __len__(self) -> int:
+        return len(self.files)
+
+    def __getitem__(self, idx: int):
+        w, sr = torchaudio.load(self.files[idx])
+        return w[0][:128]
+
+        
+>>>>>>> 02-generator
 class YADCDataModule:
     def __init__(
             self,
             data_path: Path,
+<<<<<<< HEAD
             batch_size: int = 1,
             num_workers: int = 1,
         ):
+=======
+            batch_size: int,
+            num_workers: int,
+        ):
+        if data_path is None:
+            data_path = Path(os.environ.get('YADC_DATASET_PATH'))
+>>>>>>> 02-generator
         self.data_path = data_path
         self.batch_size = batch_size
         self.num_workers = num_workers
@@ -44,6 +84,7 @@ class YADCDataModule:
     @staticmethod
     def prepare_data(
             data_path: Path,
+<<<<<<< HEAD
         ) -> Dict[str, Path]:
         wav_paths = list(str(p) for p in data_path.glob('*.wav'))
 
@@ -52,6 +93,10 @@ class YADCDataModule:
         )
 
         return data
+=======
+        ):
+        pass
+>>>>>>> 02-generator
 
     def setup(
             self,
@@ -61,7 +106,10 @@ class YADCDataModule:
             data_path=self.data_path,
         )
         full_dataset = YADCDataset(
+<<<<<<< HEAD
             wav_paths=data['wav_paths'],
+=======
+>>>>>>> 02-generator
         )
 
         full_size = len(full_dataset)
@@ -94,6 +142,7 @@ class YADCDataModule:
     def test_dataloader(self):
         pass
 
+<<<<<<< HEAD
 
 if __name__ == '__main__':
     datamodule = YADCDataModule(
@@ -107,3 +156,5 @@ if __name__ == '__main__':
         break
     print(datamodule)
 
+=======
+>>>>>>> 02-generator
