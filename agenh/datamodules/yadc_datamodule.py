@@ -25,6 +25,10 @@ class YADCDataset(Dataset):
                 self.files.append(wav_file)
             i += 1
 
+            if i == 2:
+                print(self.files)
+                break
+
             if (i % 100 == 0):
                 print('\n\n\n progress: {}/{}\n\n\n'.format(i, len(files)))
                 #print('FILE:', self.files[0])

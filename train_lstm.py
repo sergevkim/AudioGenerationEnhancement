@@ -3,7 +3,7 @@ from pathlib import Path
 
 from agenh.datamodules import YADCDataModule
 from agenh.loggers import WandbLogger
-from agenh.models import AutoEncoder
+from agenh.models import RNNGenerator
 from agenh.trainer import Trainer
 import os
 import sys
@@ -22,16 +22,16 @@ def main(args):
 
     print('\n\nDEVICE: {}\n\n'.format(args.device))
 
-    model = AutoEncoder(
-        config={'num_features': 16000, 'device': args.device},
+    model = RNNGenerator(
+        config={'device': args.device},
     ).to(args.device)
 
     datamodule = YADCDataModule(
         data_path=None,
-        batch_size=8,
+        batch_size=1,
         num_workers=args.num_workers,
     )
-    datamodule.setup(val_ratio=0.15)
+    datamodule.setup(val_ratio=0.5)
     
     trainer = Trainer(
         logger=WandbLogger('MusicGenerator', 'AutoEncoder_512-256-128-MSE'),
