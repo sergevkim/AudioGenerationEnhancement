@@ -3,4 +3,4 @@
 #from .metric_gan_enhancer import MetricGANEnhancer
 #from .unet_enhancer import UNetEnhancer
 from .dummy_autoencoder import AutoEncoder
-
+from .lstm import RNNGenerator
