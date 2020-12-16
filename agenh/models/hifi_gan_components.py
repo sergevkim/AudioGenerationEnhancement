@@ -9,10 +9,66 @@ from torch.nn import (
     Conv1d,
     LeakyReLU,
     Module,
+    ModuleList,
+    ReLU,
     Sequential,
     Sigmoid,
     Tanh,
 )
+
+
+class WaveNetBlock(Module):
+    def __init__(
+            self,
+            dilation: int,
+            in_channels: int = 1,
+            skip_channels: int = 240,
+            residual_channels: int = 120,
+        ):
+        super().__init__()
+        self.conditional_conv = Conv1d(
+            in_channels=in_channels,
+            out_channels=residual_channels * 2,
+            kernel_size=1,
+        )
+        self.causal_conv = Conv1d(
+            in_channels=residual_channels,
+            out_channels=residual_channels * 2,
+            kernel_size=1,
+            dilation=dilation,
+        )
+        self.skip_conv = Conv1d(
+            in_channels=residual_channels,
+            out_channels=skip_channels,
+            kernel_size=1,
+        )
+        self.residual_conv = Conv1d(
+            in_channels=residual_channels,
+            out_channels=residual_channels,
+            kernel_size=1,
+        )
+
+    def forward(
+            self,
+            inputs: Tensor,
+            waveforms: Tensor,
+        ) -> Tensor:
+        fir = self.conditional_conv(waveforms)
+        sec = self.causal_conv(inputs)
+
+        hiddens = fir + sec
+        residual_channels = hiddens.shape[1] // 2
+        hiddens_1, hiddens_2 = torch.split(
+            tensor=hiddens,
+            split_size_or_sections=[residual_channels, residual_channels],
+            dim=1,
+        )
+        hiddens = torch.tanh(hiddens_1) + torch.sigmoid(hiddens_2)
+
+        skips = self.skip_conv(hiddens)
+        residuals = self.residual_conv(hiddens) + inputs
+
+        return skips, residuals
 
 
 class WaveNet(Module):
@@ -20,28 +76,53 @@ class WaveNet(Module):
             self,
             in_channels: int = 1,
             out_channels: int = 1,
-            hidden_dim: int = 10,
+            hidden_dim: int = 120,
         ):
         super().__init__()
-        self.conv_first = Conv1d(
+        self.first_conv = Conv1d(
             in_channels=in_channels,
             out_channels=hidden_dim,
             kernel_size=3,
             padding=1,
         )
-        self.conv_last = Conv1d(
-            in_channels=hidden_dim,
-            out_channels=out_channels,
-            kernel_size=3,
-            padding=1,
+        self.blocks = ModuleList()
+        self.blocks += [
+            WaveNetBlock(dilation=1),
+            WaveNetBlock(dilation=1),
+            WaveNetBlock(dilation=1),
+        ]
+
+        self.head = Sequential(
+            ReLU(),
+            Conv1d(
+                in_channels=240,
+                out_channels=1,
+                kernel_size=1,
+            ),
+            ReLU(),
+            Conv1d(
+                in_channels=1,
+                out_channels=1,
+                kernel_size=1,
+            ),
+            Tanh(),
         )
 
     def forward(
             self,
             x: Tensor, #shape: (batch_size, wav_length)
+            conditions: Tensor,
         ) -> Tensor:
-        x = self.conv_first(x)
-        x = self.conv_last(x)
+        residuals = self.first_conv(conditions)
+
+        skips_list = list()
+
+        for block in self.blocks:
+            skips, residuals = block(residuals, conditions)
+            skips_list.append(skips)
+
+        skips = torch.stack(skips_list, dim=0).sum(dim=0)
+        x = self.head(skips)
 
         return x
 
@@ -49,10 +130,10 @@ class WaveNet(Module):
 class PostNet(Module):
     def __init__(
             self,
-            blocks_num: int = 4,
+            blocks_num: int = 2,
             in_channels: int = 1,
             out_channels: int = 1,
-            hidden_dim: int = 10,
+            hidden_dim: int = 32,
         ):
         super().__init__()
 
@@ -107,19 +188,19 @@ class HiFiGenerator(Module):
         self.wavenet = WaveNet(
             in_channels=1,
             out_channels=1,
-            hidden_dim=10,
+            hidden_dim=120,
         )
         self.postnet = PostNet(
             in_channels=1,
             out_channels=1,
-            hidden_dim=10,
+            hidden_dim=32,
         )
 
     def forward(
             self,
             x: Tensor,
         ) -> Tuple[Tensor, Tensor]:
-        x_w = self.wavenet(x)
+        x_w = self.wavenet(x, x)
         x_p = self.postnet(x_w)
 
         return x_w, x_p
