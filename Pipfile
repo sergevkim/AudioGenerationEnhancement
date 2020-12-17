@@ -8,6 +8,8 @@ djangorestframework = "*"
 midi2audio = "*"
 torchaudio = "*"
 tqdm = "*"
+ipython = "*"
+ipykernel = "*"
 
 [dev-packages]
 
