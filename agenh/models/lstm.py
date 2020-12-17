@@ -109,7 +109,7 @@ class RNNGenerator(nn.Module):
     def validation_epoch_end(self, epoch_idx):
         pass
 
-    def validation_step(self, batch, bathc_idx):
+    def validation_step(self, batch, batch_idx):
         return self.training_step(batch, bathc_idx)
 
     def configure_optimizers(self):

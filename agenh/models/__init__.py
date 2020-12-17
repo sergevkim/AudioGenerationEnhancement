@@ -4,3 +4,5 @@
 #from .unet_enhancer import UNetEnhancer
 from .dummy_autoencoder import AutoEncoder
 from .lstm import RNNGenerator
+from .hifi_gan_enhancer import HiFiGANEnhancer
+
