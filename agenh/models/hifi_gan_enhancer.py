@@ -245,13 +245,13 @@ class HiFiGANEnhancer(Module):
 
     def predict(
             self,
-            waveform,
-        ):
+            waveform: Tensor,
+        ) -> Tensor:
         waveform = waveform.unsqueeze(0)
 
         _, output = self(waveform)
 
-        output = output.squeeze(0)
+        output = output.squeeze(0).detach()
 
         return output
 
