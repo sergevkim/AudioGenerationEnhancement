@@ -1,56 +1,33 @@
 from pathlib import Path
-import os 
-from agenh.utils import get_wav_from_abc
 
 import torch
-import torchaudio
 from torch import Tensor
 from torch.utils.data import Dataset, DataLoader
 
 
-class YADCDataset(Dataset):
-    def __init__(self):
-        data_path = Path(os.environ.get('YADC_DATASET_PATH'))
-        files = os.listdir(data_path)
-        self.files = []
-        i = 0
-        for f in files:
-            if '.wav' in f:
-                # wav_file = get_wav_from_abc(data_path, f)
-                
-                wav_file = '{}/{}'.format(data_path, f)
-                w, sr = torchaudio.load(wav_file)
-                if w.shape[1] < 16000:
-                    continue
-                self.files.append(wav_file)
-            i += 1
-
-            if i == 2:
-                print(self.files)
-                break
-
-            if (i % 100 == 0):
-                print('\n\n\n progress: {}/{}\n\n\n'.format(i, len(files)))
-                #print('FILE:', self.files[0])
-                #break
+class ProtostarDataset(Dataset):
+    def __init__(
+            self,
+        ):
+        pass
 
     def __len__(self) -> int:
-        return len(self.files)
+        pass
 
-    def __getitem__(self, idx: int):
-        w, sr = torchaudio.load(self.files[idx])
-        return w.squeeze()
+    def __getitem__(
+            self,
+            idx: int,
+        ):
+        pass
 
-        
-class YADCDataModule:
+
+class ProtostarDataModule:
     def __init__(
             self,
             data_path: Path,
             batch_size: int,
             num_workers: int,
         ):
-        if data_path is None:
-            data_path = Path(os.environ.get('YADC_DATASET_PATH'))
         self.data_path = data_path
         self.batch_size = batch_size
         self.num_workers = num_workers
@@ -68,7 +45,7 @@ class YADCDataModule:
         data = self.prepare_data(
             data_path=self.data_path,
         )
-        full_dataset = YADCDataset(
+        full_dataset = ProtostarDataset(
         )
 
         full_size = len(full_dataset)
@@ -100,3 +77,4 @@ class YADCDataModule:
 
     def test_dataloader(self):
         pass
+

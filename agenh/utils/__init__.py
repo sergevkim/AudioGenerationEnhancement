@@ -1,2 +1,2 @@
 from .randomer import Randomer
-from .waveform_processor import WaveformProcessor
+from .abc_utils import get_wav_from_abc

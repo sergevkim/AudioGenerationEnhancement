@@ -6,6 +6,9 @@ COPY Pipfile .
 COPY Pipfile.lock .
 RUN pipenv install --system --deploy
 
+RUN apt update
+RUN apt install -y vim
+
 # set environment variables
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONDONTWRITEBYTECODE 1
