@@ -97,13 +97,13 @@ class RNNGenerator(nn.Module):
         res = self.mu_law_decoder(answer)
         return res
 
-    def training_step_end(self):
+    def training_step_end(self, batch_idx):
         pass
 
     def training_epoch_end(self, epoch_idx):
         pass
 
-    def validation_step_end(self):
+    def validation_step_end(self, batch_idx):
         pass
 
     def validation_epoch_end(self, epoch_idx):
