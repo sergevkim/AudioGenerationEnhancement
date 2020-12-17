@@ -40,7 +40,7 @@ class AutoEncoder(nn.Module):
             x = l(x)
         return x
 
-    def training_step(self, batch, bacth_idx):
+    def training_step(self, batch, batch_idx, optimizer_idx):
         batch = batch.to(self.device)
         res = self.forward(batch)
         return self.train_loss(res, batch)
@@ -57,8 +57,8 @@ class AutoEncoder(nn.Module):
     def validation_epoch_end(self, epoch_idx):
         pass
 
-    def validation_step(self, batch, bathc_idx):
-        return self.training_step(batch, bathc_idx)
+    def validation_step(self, batch, batch_idx):
+        return self.training_step(batch, batch_idx, 0)
 
     def configure_optimizers(self):
         optimizer = Adam(

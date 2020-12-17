@@ -36,23 +36,26 @@ class RNNGenerator(nn.Module):
         return [torch.zeros(2, batch_size, 256, requires_grad=True).to(self.device),
                torch.zeros(2, batch_size, 256, requires_grad=True).to(self.device)]
 
-    def training_step(self, batch, bacth_idx):
+    def training_step(self, batch, batch_idx, optimizer_idx):
         hidden = self.init_hidden(batch.shape[0])
         batch = batch.to(self.device)
         batch = torch.transpose(self.mu_law_encoder(batch), 0, 1)#.unsqueeze(2).type(torch.float)
-        gt = nn.functional.pad(batch, (0, 0, 1, 0))[:-1]
-        print('x SHAPE', batch.shape)
-        print('hidden SHAPE', hidden[0].shape)
+        gt = nn.functional.pad(batch, (0, 0, 0, 1))[1:]
+
+        #print('x SHAPE', batch[:10,0])
+        #print('hidden SHAPE', gt[:10, 0])
+        #print('x SHAPE', batch.shape)
+        #print('hidden SHAPE', hidden[0].shape)
         res, _ = self.forward(batch, hidden)
-        print('res SHAPE', res.shape)
-        print('gt SHAPE', gt.shape)
+        #print('res SHAPE', res.shape)
+        #print('gt SHAPE', gt.shape)
 
         # res = res.transpose(1, 2).contiguous().view((-1, 256))
         res = res.contiguous().view((-1, 256))
         #gt = gt.squeeze(2).view((-1)).type(torch.long)
         gt = gt.view((-1)).type(torch.long)
-        print('res SHAPE', res.shape)
-        print('gt SHAPE', gt.shape)
+        #print('res SHAPE', res.shape)
+        #print('gt SHAPE', gt.shape)
         return self.train_loss(res, gt)
 
     def stupid_inference(self, wav):
@@ -61,8 +64,7 @@ class RNNGenerator(nn.Module):
         batch = batch.to(self.device)
         batch = torch.transpose(self.mu_law_encoder(batch), 0, 1)#.unsqueeze(2).type(torch.float)
         gt = nn.functional.pad(batch, (0, 0, 1, 0))[:-1]
-        print('x SHAPE', batch.shape)
-        print('hidden SHAPE', hidden[0].shape)
+        
         res, _ = self.forward(batch, hidden)
         
         #print('RESS', res[0][0])
@@ -75,15 +77,19 @@ class RNNGenerator(nn.Module):
     def inference(self, wav):
         batch = wav[:1]
         hidden = self.init_hidden(batch.shape[0])
-        hidden[0] += torch.zeros_like(hidden[0]).normal_(mean=0, std=0.02).to(self.device)
-        hidden[1] += torch.zeros_like(hidden[1]).normal_(mean=0, std=0.02).to(self.device)
+        #hidden[0] += torch.zeros_like(hidden[0]).normal_(mean=0, std=0.02).to(self.device)
+        #hidden[1] += torch.zeros_like(hidden[1]).normal_(mean=0, std=0.02).to(self.device)
         
         batch = batch.to(self.device) #.type(torch.long)
         batch = self.mu_law_encoder(batch).unsqueeze(0)
         answer = wav[:1].to(self.device)
         print('RES', batch, self.mu_law_encoder(wav[0]))
-        for i in range(wav.shape[0]):
-            batch, hidden = self.forward(batch, hidden)
+        for i in range(wav.shape[0] - 10):
+            if i < 8000:
+                batch = self.mu_law_encoder(wav[i:i + 1]).to(self.device).unsqueeze(0)
+                batch, hidden = self.forward(batch, hidden)
+            else:
+                batch, hidden = self.forward(batch, hidden)
             # batch, hidden = self.forward(self.mu_law_encoder(wav[i:i + 1]).to(self.device).unsqueeze(0), hidden)
             #    print('RESS', batch)
             batch = torch.argmax(batch, dim=2)
@@ -93,6 +99,9 @@ class RNNGenerator(nn.Module):
             #print('answer', answer.shape)
             #print('tmp', tmp.shape)
             answer = torch.cat((answer, tmp), dim=-1)
+            hidden = [hidden[0], hidden[1]]
+            #hidden[0] += torch.zeros_like(hidden[0]).normal_(mean=0, std=0.02).to(self.device)
+            #hidden[1] += torch.zeros_like(hidden[1]).normal_(mean=0, std=0.02).to(self.device)
 
         res = self.mu_law_decoder(answer)
         return res
@@ -109,8 +118,8 @@ class RNNGenerator(nn.Module):
     def validation_epoch_end(self, epoch_idx):
         pass
 
-    def validation_step(self, batch, bathc_idx):
-        return self.training_step(batch, bathc_idx)
+    def validation_step(self, batch, batch_idx):
+        return self.training_step(batch, batch_idx, 0)
 
     def configure_optimizers(self):
         optimizer = Adam(

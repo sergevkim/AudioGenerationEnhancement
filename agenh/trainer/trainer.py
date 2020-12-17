@@ -68,12 +68,18 @@ class Trainer:
         losses = list()
 
         for batch_idx, batch in enumerate(tqdm.tqdm(train_dataloader)):
-            loss = model.training_step(batch, batch_idx)
-            losses.append(loss.item())
-            loss.backward()
-            utils.clip_grad_norm_(parameters=model.parameters(), max_norm=10)
-
-            for optimizer in optimizers:
+            for optimizer_idx, optimizer in enumerate(optimizers):
+                loss = model.training_step(
+                    batch=batch,
+                    batch_idx=batch_idx,
+                    optimizer_idx=optimizer_idx,
+                )
+                losses.append(loss.item())
+                loss.backward()
+                utils.clip_grad_norm_(
+                    parameters=model.parameters(),
+                    max_norm=10,
+                )
                 optimizer.step()
                 optimizer.zero_grad()
 
@@ -178,4 +184,3 @@ if __name__ == '__main__':
         version='0',
     )
     print(trainer)
-
