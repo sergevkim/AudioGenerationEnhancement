@@ -83,7 +83,7 @@ class Trainer:
                 optimizer.step()
                 optimizer.zero_grad()
 
-            model.training_step_end()
+            model.training_step_end(batch_idx=batch_idx)
 
         average_loss = sum(losses) / len(losses)
 
@@ -107,7 +107,7 @@ class Trainer:
         for batch_idx, batch in enumerate(tqdm.tqdm(val_dataloader)):
             loss = model.validation_step(batch, batch_idx)
             losses.append(loss.item())
-            model.validation_step_end()
+            model.validation_step_end(batch_idx=batch_idx)
 
         average_loss = sum(losses) / len(losses)
 
