@@ -1,4 +1,7 @@
-import wandb
+try:
+    import wandb
+except:
+    print('bad boy')
 
 class WandbLogger:
     def __init__(self, project_name, experiment_name):

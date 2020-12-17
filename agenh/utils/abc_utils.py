@@ -1,5 +1,8 @@
-from midi2audio import FluidSynth
-import music21
+try:
+    from midi2audio import FluidSynth
+    import music21
+except:
+    print('bad guy')
 from pathlib import Path
 import requests
 import os
