@@ -8,7 +8,7 @@ from torch import Tensor
 from torch.utils.data import Dataset, DataLoader
 
 
-class YADCDataset(Dataset):
+class YADCDataset2(Dataset):
     def __init__(
             self,
             wav_paths: List[Path],
@@ -30,7 +30,7 @@ class YADCDataset(Dataset):
 
         return waveform
 
-class YADCDataModule:
+class YADCDataModule2:
     def __init__(
             self,
             data_path: Path,
@@ -60,7 +60,7 @@ class YADCDataModule:
         data = self.prepare_data(
             data_path=self.data_path,
         )
-        full_dataset = YADCDataset(
+        full_dataset = YADCDataset2(
             wav_paths=data['wav_paths'],
         )
 

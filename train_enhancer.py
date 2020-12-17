@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from pathlib import Path
 
-from agenh.datamodules import YADCDataModule
+from agenh.datamodules import YADCDataModule2
 from agenh.loggers import NeptuneLogger
 from agenh.models import HiFiGANEnhancer
 from agenh.trainer import Trainer
@@ -22,7 +22,7 @@ def main(args):
         verbose=args.verbose,
         device=args.device,
     ).to(args.device)
-    datamodule = YADCDataModule(
+    datamodule = YADCDataModule2(
         data_path=args.data_path,
         batch_size=args.batch_size,
         num_workers=args.num_workers,
