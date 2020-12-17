@@ -243,6 +243,18 @@ class HiFiGANEnhancer(Module):
 
         return [optimizer], []
 
+    def predict(
+            self,
+            waveform,
+        ):
+        waveform = waveform.unsqueeze(0)
+
+        _, output = self(waveform)
+
+        output = output.squeeze(0)
+
+        return output
+
 
 if __name__ == '__main__':
     enhancer = HiFiGANEnhancer()
