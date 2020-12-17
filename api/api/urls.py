@@ -21,7 +21,7 @@ from rest_framework.views import APIView
 from rest_framework.parsers import *
 from rest_framework.status import *
 
-import agenh
+from agenh.models import HiFiGANEnhancer
 import numpy as np
 import io
 import torch
@@ -77,7 +77,11 @@ class EnhancerView(APIView):
         wav_bytes = request.data
         wav = bytes_to_tensor(wav_bytes)
 
-        enhanced_wav = wav  # TODO call enhance model
+        model = HiFiGANEnhancer()
+        checkpoint = torch.load('v1.1-e10.pt')
+        model.load_state_dict(checkpoint['model_state_dict'])
+        enhanced_wav = model.predict(wav)
+
         wav_bytes = tensor_to_bytes(enhanced_wav)
 
         return Response(wav_bytes,
