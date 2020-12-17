@@ -13,7 +13,7 @@ class WaveformProcessor(Module):
             self,
             x: Tensor,
         ) -> Tensor:
-        noise = torch.zeros_like(x).normal_(mean=0, std=1)
+        noise = torch.zeros_like(x).normal_(mean=0, std=0.1)
         x = x + noise
 
         return x
